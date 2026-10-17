@@ -1,0 +1,1460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nizomiddin Soibnazarov</title>
+<script src="./support.js"></script>
+<script src="/_blob/d7e187fabea05912cdf9e6e619a3f7e1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Unbounded:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+@property --r { syntax: "\3C percentage\3E"; inherits: false; initial-value: 0%; }
+html, body { margin: 0; background: #02030a; }
+
+.bb { --line: rgba(232,236,255,.14); --dim: rgba(232,236,255,.62); --ease: cubic-bezier(.2,.7,.1,1);
+  position: relative; width: 100%; height: 100vh; min-height: 560px; overflow: hidden; background: #02030a; color: #e8ecff;
+  font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; -webkit-font-smoothing: antialiased; }
+.bb *, .bb *::before, .bb *::after { box-sizing: border-box; }
+.bb button { font: inherit; color: inherit; }
+.bb.nogl { background: radial-gradient(55% 50% at 28% 72%, rgba(255,160,90,.2), transparent 62%), radial-gradient(50% 50% at 76% 28%, rgba(90,110,255,.2), transparent 62%), #02030a; }
+.bb.nogl .gl { display: none; }
+
+.gl { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+.vig { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(0,0,0,.6) 100%); }
+
+/* HUD */
+.hud { position: absolute; left: clamp(18px,3vw,40px); top: clamp(16px,3.2vh,32px); z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 6px; transition: opacity .6s; }
+.hud b { font-weight: 500; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; }
+.hud span { font-size: 11px; letter-spacing: .18em; color: var(--dim); text-transform: uppercase; }
+.bb.insec .hud { opacity: 0; }
+
+/* the star you click first */
+.seed { position: absolute; left: 50%; top: 50%; width: 160px; height: 160px; margin: -80px 0 0 -80px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; z-index: 7; opacity: 0; pointer-events: none; transition: opacity 1.4s ease; }
+.seed.show { opacity: 1; pointer-events: auto; }
+.seed[disabled] { cursor: default; }
+.seed:focus-visible { outline: 1px dashed rgba(255,255,255,.8); outline-offset: 4px; }
+.seed-ring { position: absolute; left: 50%; top: 50%; width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 50%; border: 1px solid rgba(255,235,200,.55); opacity: 0; animation: ping 3.4s ease-out infinite; }
+.seed-ring.b { animation-delay: 1.7s; }
+.seed.charging .seed-ring { animation-duration: .55s; }
+.seed-core { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 6px rgba(255,220,170,.8); opacity: 0; }
+.bb.nogl .seed-core { opacity: 1; animation: beat 2.4s ease-in-out infinite; }
+.seed-hint { position: absolute; left: 50%; bottom: clamp(28px,7vh,64px); transform: translateX(-50%); z-index: 6; font-size: 11px; letter-spacing: .34em; text-transform: uppercase; color: var(--dim); opacity: 0; transition: opacity 1.2s; pointer-events: none; white-space: nowrap; }
+.seed-hint.show { opacity: 1; animation: hint 3.2s ease-in-out infinite; }
+@keyframes ping { 0% { transform: scale(.35); opacity: .9; } 100% { transform: scale(2.3); opacity: 0; } }
+@keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.7); } }
+@keyframes hint { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -5px); } }
+
+.flash { position: absolute; inset: 0; z-index: 9; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 50%, #fff 0, rgba(255,236,200,.95) 12%, rgba(255,150,70,.5) 36%, rgba(120,80,255,.18) 60%, transparent 78%); }
+.flash.go { animation: flash 1.9s cubic-bezier(.1,.7,.2,1) forwards; }
+@keyframes flash { 0% { opacity: 0; transform: scale(.4); } 6% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.6); } }
+
+/* the six stars */
+.orbs { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+.orb { position: absolute; width: 140px; height: 140px; margin: -70px 0 0 -70px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; pointer-events: none; --accent: #fff; }
+.orb.live { pointer-events: auto; }
+.orb[disabled] { cursor: default; }
+.orb:focus-visible { outline: 1px dashed var(--accent); outline-offset: -10px; }
+.orb-core { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 24px 8px var(--accent); opacity: 0; transition: opacity 1s; }
+.bb.nogl .orb.on .orb-core { opacity: .9; }
+.orb-label { position: absolute; left: 50%; top: calc(50% + 40px); display: flex; flex-direction: column; align-items: center; gap: 7px; white-space: nowrap; opacity: 0; letter-spacing: .9em; filter: blur(8px); transform: translate(-50%, 10px);
+  transition: opacity 1s ease var(--d), letter-spacing 1.4s var(--ease) var(--d), filter 1s ease var(--d), transform 1.2s var(--ease) var(--d); }
+.orb.on .orb-label { opacity: 1; letter-spacing: .14em; filter: blur(0); transform: translate(-50%, 0); }
+.orb.away .orb-label { opacity: 0; transition-delay: 0s; transition-duration: .35s; }
+.orb-label i { font-style: normal; font-weight: 500; font-size: 11px; line-height: 1; color: var(--accent); letter-spacing: .2em; }
+.orb-label b { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 13px; line-height: 1; text-transform: uppercase; letter-spacing: inherit; transition: color .3s; }
+.orb-label em { font-style: normal; font-size: 11px; line-height: 1; color: var(--dim); letter-spacing: .06em; opacity: 0; transform: translateY(-4px); transition: opacity .4s, transform .4s; }
+.orb:hover b, .orb:focus-visible b { color: var(--accent); }
+.orb:hover em, .orb:focus-visible em { opacity: 1; transform: none; }
+@media (hover: none) { .orb-label em { opacity: .7; transform: none; } }
+
+/* loader */
+.loader { position: absolute; inset: 0; z-index: 40; background: #02030a; overflow: hidden; }
+.loader.out { background: radial-gradient(circle at 50% 50%, transparent var(--r), #02030a calc(var(--r) + 1px)); animation: iris 1.6s cubic-bezier(.65,0,.2,1) .4s forwards; }
+@keyframes iris { 0% { --r: 0%; } 100% { --r: 100%; } }
+.ld-core { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transition: opacity .4s; }
+.ld-dot { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: #fff; transform: scale(calc(.6 + var(--p) / 100 * 1.8)); box-shadow: 0 0 calc(10px + var(--p) * .5px) calc(2px + var(--p) * .12px) rgba(255,225,180,.9); }
+.ld-ring { position: absolute; left: -60px; top: -60px; width: 120px; height: 120px; border-radius: 50%; border: 1px solid rgba(255,235,205,.4); opacity: 0; animation: ping 2.6s ease-out infinite; }
+.ld-ring.b { animation-delay: .87s; }
+.ld-ring.c { animation-delay: 1.73s; }
+.ld-meta { position: absolute; left: clamp(18px,3vw,40px); bottom: clamp(24px,5vh,48px); display: flex; align-items: flex-end; gap: 16px; transition: opacity .4s; }
+.ld-num { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(44px,8vw,96px); line-height: .8; letter-spacing: -.04em; }
+.ld-txt { font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: var(--dim); padding-bottom: 4px; }
+.ld-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(255,255,255,.08); transition: opacity .4s; }
+.ld-bar span { display: block; height: 100%; background: linear-gradient(90deg, #ffb36b, #fff); transition: width .12s linear; }
+.loader.out .ld-core, .loader.out .ld-meta, .loader.out .ld-bar { opacity: 0; }
+
+/* panel shell */
+.panel { position: absolute; inset: 0; z-index: 20; color: #e8ecff; clip-path: circle(0px at var(--ox, 50%) var(--oy, 50%)); transition: clip-path 1s cubic-bezier(.76,0,.18,1); }
+.panel.open { clip-path: circle(160vmax at var(--ox, 50%) var(--oy, 50%)); }
+.panel.open.leaving { clip-path: circle(0px at var(--ox, 50%) var(--oy, 50%)); }
+.panel-bg { position: absolute; inset: 0; background: radial-gradient(120% 90% at var(--ox, 50%) var(--oy, 50%), color-mix(in srgb, var(--accent) 17%, transparent), transparent 62%), rgba(2,3,10,.86); }
+.panel-inner { position: relative; height: 100%; overflow-y: auto; overflow-x: hidden; padding: clamp(18px,3vw,36px) clamp(18px,5vw,72px) 72px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
+.panel-top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 0 18px; background: linear-gradient(to bottom, rgba(2,3,10,.92), rgba(2,3,10,0)); }
+.back { display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px 11px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.04); cursor: pointer; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; transition: background .25s, border-color .25s, color .25s; }
+.back svg { transition: transform .3s var(--ease); }
+.back:hover { background: var(--accent); border-color: var(--accent); color: #02030a; }
+.back:hover svg { transform: translateX(-4px); }
+.back:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ptag { display: flex; align-items: baseline; gap: 12px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+.ptag i { font-style: normal; color: var(--accent); }
+.ptag b { font-weight: 500; }
+
+.rise { opacity: 0; transform: translateY(26px); }
+.panel.open .rise { animation: rise .95s var(--ease) both; animation-delay: calc(.5s + var(--i, 0) * .09s); }
+@keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.kicker { font-weight: 500; font-size: 12px; letter-spacing: .26em; text-transform: uppercase; color: var(--accent); }
+.huge { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: clamp(34px,5.6vw,84px); line-height: .98; letter-spacing: -.035em; margin: 16px 0 0; }
+.sr { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* about */
+.about { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: clamp(28px,6vw,96px); align-items: center; min-height: calc(100vh - 150px); }
+.pw { position: relative; width: min(100%, 400px); aspect-ratio: 4 / 5; margin: 0 auto; }
+.tilt { position: absolute; left: -26%; right: -26%; top: 20%; bottom: 20%; transform-style: preserve-3d; }
+.tilt.t1 { transform: rotate(-16deg) rotateX(68deg); }
+.tilt.t2 { left: -40%; right: -40%; top: 10%; bottom: 10%; transform: rotate(14deg) rotateX(72deg); opacity: .7; }
+.oring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); animation: spin 16s linear infinite; }
+.tilt.t2 .oring { animation-duration: 26s; animation-direction: reverse; }
+.oring::after { content: ''; position: absolute; left: 50%; top: -5px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 16px 4px var(--accent); }
+.photo { position: absolute; inset: 0; display: block; cursor: pointer; border-radius: 999px 999px 26px 26px; overflow: hidden; }
+.photo::before { content: ''; position: absolute; left: 50%; top: 50%; width: 200%; aspect-ratio: 1; margin: -100% 0 0 -100%; background: conic-gradient(from 0deg, var(--accent), rgba(255,179,107,0) 28%, rgba(255,179,107,0) 72%, var(--accent)); animation: spin 7s linear infinite; }
+.photo:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; }
+.photo-in { position: absolute; inset: 2px; border-radius: 999px 999px 24px 24px; overflow: hidden; background: #070a1a; display: flex; align-items: center; justify-content: center; }
+.photo-in img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--accent); text-align: center; }
+.photo-empty small { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+.photo-empty small.dm { color: var(--dim); letter-spacing: .08em; text-transform: none; font-size: 11px; }
+.lede { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; font-size: clamp(24px,2.7vw,38px); line-height: 1.18; color: #f4f6ff; margin: 22px 0 0; max-width: 24em; }
+.sub { font-size: 14px; line-height: 1.7; color: var(--dim); margin: 16px 0 0; max-width: 36em; }
+.facts { margin-top: 32px; border-top: 1px solid var(--line); }
+.fact { display: flex; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.fact span { color: var(--dim); letter-spacing: .14em; text-transform: uppercase; font-size: 11px; padding-top: 2px; }
+.fact b { font-weight: 500; text-align: right; }
+
+/* projects */
+.ph { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin: 6px 0 clamp(18px,3vh,34px); }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: clamp(14px,2vw,28px); }
+.cwrap { perspective: 1200px; }
+.card { position: relative; height: 100%; display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 18px; border-radius: 22px; background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.015)); border: 1px solid rgba(255,255,255,.11); transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d; transition: transform .25s ease-out, border-color .3s; }
+.card::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--accent) 24%, transparent), transparent 62%); }
+.card:hover { border-color: color-mix(in srgb, var(--accent) 65%, transparent); }
+.card:hover::before { opacity: 1; }
+.art { position: relative; height: 158px; border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, #0b1124, #060814); border: 1px solid rgba(255,255,255,.07); transform: translateZ(26px); color: var(--accent); }
+.art-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.trace path { stroke-dasharray: 5 9; animation: flow 1.4s linear infinite; opacity: .75; }
+@keyframes flow { to { stroke-dashoffset: -28; } }
+.globe { transform-box: fill-box; transform-origin: center; animation: spin 28s linear infinite; }
+.room { background: linear-gradient(180deg, #0a0d1c, #05060f); }
+.room .door { position: absolute; left: 50%; bottom: 22px; width: 50px; height: 96px; margin-left: -25px; background: linear-gradient(#ffd9ac, #ff9a6b); box-shadow: 0 0 40px 10px rgba(255,150,95,.5); animation: flicker 5s steps(1) infinite; }
+.room .beam { position: absolute; left: 50%; bottom: 0; width: 240px; height: 28px; margin-left: -120px; background: linear-gradient(to top, rgba(255,170,110,.0), rgba(255,170,110,.35)); clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%); }
+.room .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; background: linear-gradient(to bottom, rgba(255,150,95,.22), rgba(0,0,0,.4)); }
+@keyframes flicker { 0%, 100% { opacity: 1; } 42% { opacity: .55; } 46% { opacity: 1; } 78% { opacity: .75; } 80% { opacity: 1; } }
+.ctop { display: flex; justify-content: space-between; align-items: center; transform: translateZ(14px); }
+.cnum { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 13px; color: var(--accent); letter-spacing: .06em; }
+.stat { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.stat::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.stat.dimmed::before { background: rgba(255,255,255,.35); box-shadow: none; }
+.card h3 { margin: 0; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(18px,1.6vw,23px); line-height: 1.1; letter-spacing: -.01em; transform: translateZ(18px); }
+.card p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--dim); flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chips li { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 11px; letter-spacing: .04em; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; transform: translateZ(20px); }
+.lnk { display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.24); color: #fff; text-decoration: none; font-weight: 500; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; transition: background .25s, color .25s, border-color .25s; }
+.lnk:hover { background: var(--accent); color: #02030a; border-color: var(--accent); }
+.lnk.solid { background: var(--accent); color: #02030a; border-color: var(--accent); }
+.lnk.solid:hover { background: transparent; color: #fff; }
+.lnk:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.lnk.off { color: var(--dim); border-style: dashed; }
+
+.huge.who { font-size: clamp(30px,4.2vw,62px); line-height: 1.02; }
+.art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.art.xf img.b { opacity: 0; animation: xf 9s ease-in-out infinite; }
+@keyframes xf { 0%, 38% { opacity: 0; } 50%, 88% { opacity: 1; } 100% { opacity: 0; } }
+.art .dots circle { animation: blink 1.4s ease-in-out infinite; }
+.art .dots circle:nth-child(2) { animation-delay: .2s; }
+.art .dots circle:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.art .shock circle { transform-box: fill-box; transform-origin: center; opacity: 0; animation: shock 3s ease-out infinite; }
+.art .shock circle:nth-child(2) { animation-delay: 1s; }
+.art .shock circle:nth-child(3) { animation-delay: 2s; }
+@keyframes shock { 0% { transform: scale(.2); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }
+.more { display: inline-block; margin-top: 14px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); text-decoration: none; padding-bottom: 2px; border-bottom: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); transition: color .25s; }
+.more:hover { color: #fff; }
+.more:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+a.planet { display: block; color: inherit; text-decoration: none; cursor: pointer; }
+a.planet:focus-visible { outline: 2px dashed var(--c2); outline-offset: 8px; border-radius: 50%; }
+
+/* skills */
+.skills { display: grid; grid-template-columns: minmax(0,4fr) minmax(0,8fr); gap: 20px; align-items: center; min-height: calc(100vh - 150px); }
+.note { font-size: 12px; letter-spacing: .08em; color: var(--dim); margin: 22px 0 0; }
+.orbit { position: relative; width: 44em; height: 44em; margin: 0 auto; font-size: clamp(6px, 1.5vmin, 14px); }
+.orbit .core { position: absolute; left: 50%; top: 50%; width: 8em; height: 8em; margin: -4em 0 0 -4em; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 36% 30%, #fff, var(--accent) 34%, rgba(181,155,255,.14) 72%); box-shadow: 0 0 5em 1em color-mix(in srgb, var(--accent) 40%, transparent); }
+.orbit .core b { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .08em; color: #0a0820; text-transform: uppercase; }
+.ring { position: absolute; left: 50%; top: 50%; width: calc(var(--rad) * 2em); height: calc(var(--rad) * 2em); margin-left: calc(var(--rad) * -1em); margin-top: calc(var(--rad) * -1em); border-radius: 50%; border: 1px solid var(--line); animation: spin var(--t) linear infinite; animation-direction: var(--dir); }
+.sat { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: rotate(var(--a)) translateX(calc(var(--rad) * 1em)); }
+.cw { position: absolute; left: 0; top: 0; width: 0; height: 0; transform: rotate(calc(var(--a) * -1)); }
+.cs { position: absolute; left: 0; top: 0; width: 0; height: 0; animation: spin var(--t) linear infinite; animation-direction: var(--rdir); }
+.chip { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); padding: 7px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); background: rgba(8,8,24,.82); font-size: 11px; letter-spacing: .06em; white-space: nowrap; transition: background .25s, color .25s; }
+.chip:hover { background: var(--accent); color: #0a0820; }
+.orbit:hover .ring, .orbit:hover .cs { animation-play-state: paused; }
+
+/* activities */
+.tl { position: relative; max-width: 980px; margin: 0 auto; padding: 8px 0 48px; }
+.tl::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--accent), rgba(255,127,166,0)); transform-origin: top; transform: scaleY(0); }
+.panel.open .tl::before { animation: grow 1.8s var(--ease) .6s forwards; }
+@keyframes grow { to { transform: scaleY(1); } }
+.item { position: relative; display: grid; grid-template-columns: 1fr 64px 1fr; align-items: start; margin-bottom: clamp(30px,6vh,56px); }
+.item .box { grid-row: 1; grid-column: 1; text-align: right; }
+.item.r .box { grid-column: 3; text-align: left; }
+.item .node { grid-row: 1; grid-column: 2; justify-self: center; position: relative; width: 14px; height: 14px; margin-top: 4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 18px var(--accent); }
+.item .node::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid var(--accent); animation: ping 3s ease-out infinite; opacity: 0; }
+.tag { display: inline-block; font-weight: 500; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.item h3 { margin: 0 0 10px; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(18px,2vw,26px); line-height: 1.12; letter-spacing: -.01em; }
+.item p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--dim); max-width: 26em; }
+.item:not(.r) p { margin-left: auto; }
+
+/* interests */
+.sky { position: relative; width: 100%; height: clamp(440px, 66vh, 680px); margin-top: 4px; }
+.planet { position: absolute; left: var(--x); top: var(--y); width: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); }
+.ballbox { position: relative; width: var(--s); height: var(--s); display: flex; align-items: center; justify-content: center; text-align: center; animation: bob var(--bt, 9s) ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.ball { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 32% 28%, var(--c1), var(--c2) 56%, #04050c 100%); box-shadow: inset -14px -18px 40px rgba(0,0,0,.55), 0 0 60px -12px var(--c2); transition: transform .5s var(--ease); }
+.planet:hover .ball { transform: scale(1.1); }
+.nm { position: relative; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(12px,1.25vw,16px); line-height: 1.1; padding: 0 8px; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+.planet.ringed .ballbox::after { content: ''; position: absolute; left: -30%; right: -30%; top: 40%; bottom: 40%; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; transform: rotate(-18deg); pointer-events: none; }
+.cap { position: absolute; left: 50%; top: calc(var(--s) + 10px); transform: translate(-50%, 6px); width: max-content; max-width: 230px; text-align: center; font-size: 12px; line-height: 1.55; color: var(--dim); opacity: 0; transition: opacity .35s, transform .35s; pointer-events: none; }
+.planet:hover .cap { opacity: 1; transform: translate(-50%, 0); }
+
+/* contact */
+.contact { display: flex; flex-direction: column; justify-content: center; gap: clamp(22px,4vh,40px); max-width: 1080px; margin: 0 auto; min-height: calc(100vh - 150px); }
+.hello { margin: 0; font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: clamp(44px,10.5vw,152px); line-height: .92; letter-spacing: -.045em; }
+.hello em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; letter-spacing: -.01em; color: var(--accent); }
+.mail { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.mail a { font-weight: 500; font-size: clamp(16px,2.4vw,28px); color: #fff; text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 4px; word-break: break-all; }
+.mail a:hover { color: var(--accent); }
+.copy { padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.24); background: transparent; cursor: pointer; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; transition: background .25s, color .25s; }
+.copy:hover { background: var(--accent); color: #02030a; }
+.rows { border-top: 1px solid var(--line); }
+.row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; padding: 20px 4px; border-bottom: 1px solid var(--line); color: #fff; text-decoration: none; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(20px,3vw,38px); line-height: 1; transition: padding .35s var(--ease), color .25s; }
+.row span { font-family: 'IBM Plex Mono', monospace; font-weight: 400; font-size: 12px; letter-spacing: .14em; color: var(--dim); text-transform: uppercase; }
+.row:hover { padding-left: 22px; color: var(--accent); }
+.row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (hover: none) { .cap { opacity: 1; transform: translate(-50%, 0); } }
+@media (max-width: 980px) {
+  .cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; padding: 4px 2px 18px; margin: 0 -2px; }
+  .cwrap { flex: 0 0 min(84vw, 360px); scroll-snap-align: center; }
+}
+@media (max-width: 860px) {
+  .about, .skills { grid-template-columns: 1fr; min-height: 0; gap: 34px; }
+  .pw { width: min(78%, 340px); }
+  .ph { flex-direction: column; align-items: flex-start; }
+  .tl::before { left: 7px; }
+  .item { grid-template-columns: 22px 1fr; column-gap: 18px; }
+  .item .node { grid-column: 1; grid-row: 1; justify-self: start; }
+  .item .box, .item.r .box { grid-column: 2; text-align: left; }
+  .item:not(.r) p { margin-left: 0; }
+  .sky { height: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 34px 10px; padding-bottom: 20px; }
+  .planet { position: relative; left: auto; top: auto; margin: 0 auto; }
+  .cap { position: static; opacity: 1; transform: none; margin: 14px auto 0; max-width: 160px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oring, .cs, .ring, .ballbox, .trace path, .globe, .photo::before, .seed-ring, .ld-ring, .room .door { animation: none !important; }
+  .art .dots circle, .art .shock circle, .art.xf img.b { animation: none !important; }
+  .art .shock circle { opacity: .35 !important; }
+}
+</style>
+</helmet>
+<div class="bb {{ rootClass }}">
+  <canvas id="bb-gl" class="gl"></canvas>
+  <div class="vig"></div>
+
+  <div class="hud"><b>Nizomiddin Soibnazarov</b><span>Gulistan, Uzbekistan</span></div>
+
+  <button class="seed {{ seedClass }}" aria-label="Ignite the star to begin" disabled="{{ seedDisabled }}" onClick="{{ ignite }}" onMouseEnter="{{ seedIn }}" onMouseLeave="{{ seedOut }}">
+    <span class="seed-core"></span><span class="seed-ring"></span><span class="seed-ring b"></span>
+  </button>
+  <div class="seed-hint {{ hintClass }}">click the star</div>
+
+  <div class="flash {{ flashClass }}"></div>
+
+  <nav class="orbs" aria-label="Portfolio sections">
+    <sc-for list="{{ orbs }}" as="o" hint-placeholder-count="6">
+      <button class="orb {{ o.cls }}" style="left: {{ o.left }}; top: {{ o.top }}; --accent: {{ o.color }}; --d: {{ o.delay }}" aria-label="{{ o.aria }}" disabled="{{ o.off }}" onClick="{{ o.open }}" onMouseEnter="{{ o.enter }}" onMouseLeave="{{ o.leave }}" onFocus="{{ o.enter }}" onBlur="{{ o.leave }}">
+        <span class="orb-core"></span>
+        <span class="orb-label"><i>{{ o.num }}</i><b>{{ o.name }}</b><em>{{ o.hint }}</em></span>
+      </button>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{ panelMounted }}" hint-placeholder-val="{{ false }}">
+  <div class="panel {{ panelClass }}" style="--ox: {{ ox }}; --oy: {{ oy }}; --accent: {{ accent }}" role="dialog" aria-modal="true" aria-label="{{ panelTitle }}" onKeyDown="{{ onPanelKey }}">
+    <div class="panel-bg"></div>
+    <div class="panel-inner">
+      <div class="panel-top">
+        <button class="back" data-back="1" onClick="{{ close }}" aria-label="Back to the stars">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+          <span>Back to the stars</span>
+        </button>
+        <div class="ptag"><i>{{ tagNum }}</i><b>{{ tagName }}</b></div>
+      </div>
+
+      <sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+      <div class="about">
+        <div class="pw rise" style="--i: 1">
+          <div class="tilt t1"><span class="oring"></span></div>
+          <div class="tilt t2"><span class="oring"></span></div>
+          <label class="photo" aria-label="Your photo. Click to try a different one.">
+            <input class="sr" type="file" accept="image/*" onChange="{{ onPhoto }}">
+            <span class="photo-in">
+              <sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ photo }}" alt="Portrait"></sc-if>
+              <sc-if value="{{ noPhoto }}" hint-placeholder-val="{{ true }}">
+                <span class="photo-empty">
+                  <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="32" cy="24" r="10"/><path d="M12 56c2-12 10-18 20-18s18 6 20 18"/></svg>
+                  <small>Photo coming soon</small>
+                  <small class="dm">click to try one</small>
+                </span>
+              </sc-if>
+            </span>
+          </label>
+        </div>
+        <div>
+          <div class="kicker rise" style="--i: 2">01 / About me</div>
+          <h2 class="huge who rise" style="--i: 3">Nizomiddin<br>Soibnazarov</h2>
+          <p class="lede rise" style="--i: 4">My own curiosity led me to computer science.</p>
+          <p class="sub rise" style="--i: 5">I co-built Arduinium, a robotics workshop that runs in the browser, and taught it at a school in Uzbekistan. These days I also mod games, build 3D scenes and work with AI agents.</p>
+          <div class="facts rise" style="--i: 6">
+            <div class="fact"><span>Based in</span><b>Gulistan, Uzbekistan</b></div>
+            <div class="fact"><span>Focus</span><b>Robotics, cybersecurity, AI agents</b></div>
+            <div class="fact"><span>Heading into</span><b>Computer Science</b></div>
+            <div class="fact"><span>Tests</span><b>IELTS 7 · SAT 1410</b></div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isProjects }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div class="ph">
+          <div>
+            <div class="kicker rise" style="--i: 1">02 / Projects</div>
+            <h2 class="huge rise" style="--i: 2">Things I built</h2>
+          </div>
+        </div>
+        <div class="cards">
+          <div class="cwrap rise" style="--i: 3">
+            <article class="card" style="--accent: #78c2ff" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+              <div class="art">
+                <svg viewBox="0 0 300 170" class="art-svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <g class="trace" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M0 42h66l22 22h42"/>
+                    <path d="M0 96h46l26 26h58"/>
+                    <path d="M300 54h-62l-22 22h-36"/>
+                    <path d="M300 118h-70l-26-26h-44"/>
+                    <path d="M150 0v44"/>
+                    <path d="M150 170v-44"/>
+                  </g>
+                  <rect x="124" y="62" width="52" height="46" rx="6" fill="#0a1124" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M136 62v-8M150 62v-8M164 62v-8M136 108v8M150 108v8M164 108v8M124 76h-8M124 94h-8M176 76h8M176 94h8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  <circle cx="150" cy="85" r="5" fill="currentColor"/>
+                </svg>
+              </div>
+              <div class="ctop"><span class="cnum">01</span><span class="stat">Live</span></div>
+              <h3>Arduinium</h3>
+              <p>A robotics workshop in the browser. Kids build a robot from parts, wire an Arduino, program it with blocks, and watch it drive in a simulation.</p>
+              <ul class="chips"><li>Browser</li><li>Block coding</li><li>Ages 10 to 13</li></ul>
+              <div class="links">
+                <a class="lnk solid" href="https://arduinium.vercel.app" target="_blank" rel="noopener">Live ↗</a>
+                <a class="lnk" href="https://github.com/nvidiarogforce-art/ArduiniumV2-main" target="_blank" rel="noopener">Old repo ↗</a>
+              </div>
+            </article>
+          </div>
+          <div class="cwrap rise" style="--i: 4">
+            <article class="card" style="--accent: #ff7fc8" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+              <div class="art">
+                <svg viewBox="0 0 300 170" class="art-svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <rect x="40" y="26" width="140" height="52" rx="12" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".8"/>
+                  <path d="M62 78l-10 15 28-15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" opacity=".8"/>
+                  <path d="M58 46h74M58 60h46" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+                  <rect x="120" y="96" width="140" height="46" rx="12" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M238 142l12 15-30-15" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                  <g class="dots" fill="currentColor"><circle cx="164" cy="119" r="4"/><circle cx="184" cy="119" r="4"/><circle cx="204" cy="119" r="4"/></g>
+                </svg>
+              </div>
+              <div class="ctop"><span class="cnum">02</span><span class="stat">In progress</span></div>
+              <h3>MitaAI</h3>
+              <p>A mod for MiSide that lets you talk to Mita with AI replies, right inside the real game. Voice is being tested next.</p>
+              <ul class="chips"><li>C#</li><li>BepInEx</li><li>Local + cloud AI</li></ul>
+              <div class="links">
+                <a class="lnk solid" href="https://github.com/nvidiarogforce-art/MitaAI" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </article>
+          </div>
+          <div class="cwrap rise" style="--i: 5">
+            <article class="card" style="--accent: #e9d58a" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+              <div class="art">
+                <svg viewBox="0 0 300 170" class="art-svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <defs><pattern id="bb-chk" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="currentColor" opacity=".16"/><rect x="20" y="20" width="20" height="20" fill="currentColor" opacity=".16"/></pattern></defs>
+                  <rect width="300" height="170" fill="url(#bb-chk)"/>
+                  <rect x="252" y="22" width="16" height="126" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                  <rect x="252" y="86" width="16" height="62" rx="3" fill="currentColor" opacity=".85"/>
+                  <g class="trace" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 118L62 108L96 124L134 78L172 92L210 46L236 54"/></g>
+                  <circle cx="236" cy="54" r="4.5" fill="currentColor"/>
+                </svg>
+              </div>
+              <div class="ctop"><span class="cnum">03</span><span class="stat">Public repo</span></div>
+              <h3>Chess game analyzer</h3>
+              <p>A browser extension that reviews your finished Chess.com games on your own device, with Stockfish running in WebAssembly. It grades every move from brilliant to blunder.</p>
+              <ul class="chips"><li>TypeScript</li><li>React</li><li>Stockfish</li></ul>
+              <div class="links">
+                <a class="lnk solid" href="https://github.com/nvidiarogforce-art/Chess.com-game-analyzer" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </article>
+          </div>
+          <div class="cwrap rise" style="--i: 6">
+            <article class="card" style="--accent: #ff9a6b" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+              <div class="art">
+                <svg viewBox="0 0 300 170" class="art-svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <g class="shock" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="196" cy="58" r="48"/><circle cx="196" cy="58" r="48"/><circle cx="196" cy="58" r="48"/></g>
+                  <path d="M96 140L186 66" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+                  <circle cx="190" cy="62" r="11" fill="currentColor"/>
+                  <path d="M52 152h196" stroke="currentColor" stroke-width="1.4" stroke-dasharray="3 7" opacity=".5"/>
+                </svg>
+              </div>
+              <div class="ctop"><span class="cnum">04</span><span class="stat">Beta</span></div>
+              <h3>Nukerod Beta</h3>
+              <p>A Fabric mod for Minecraft 1.21.10. Craft a Nuke Rod from blaze rods and a warhead core, and it scorches the ground it hits.</p>
+              <ul class="chips"><li>Minecraft</li><li>Fabric</li><li>CurseForge</li></ul>
+              <div class="links">
+                <a class="lnk solid" href="https://www.curseforge.com/minecraft/mc-mods/nukerod-beta" target="_blank" rel="noopener">CurseForge ↗</a>
+              </div>
+            </article>
+          </div>
+          <div class="cwrap rise" style="--i: 7">
+            <article class="card" style="--accent: #8ef0cf" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+              <div class="art xf">
+                <img src="img/blender-aerial.jpg" alt="A misty pine forest seen from above, with a winding road, built in Blender" loading="lazy" decoding="async">
+                <img class="b" src="img/blender-road.jpg" alt="The same winding forest road at ground level" loading="lazy" decoding="async">
+              </div>
+              <div class="ctop"><span class="cnum">05</span><span class="stat">Ongoing</span></div>
+              <h3>Blender scenes</h3>
+              <p>A foggy forest road, built and lit in Blender. One scene out of quite a few.</p>
+              <ul class="chips"><li>Blender</li><li>Environments</li><li>Fog</li></ul>
+            </article>
+          </div>
+          <div class="cwrap rise" style="--i: 8">
+            <article class="card" style="--accent: #b59bff" onMouseMove="{{ tilt }}" onMouseLeave="{{ untilt }}">
+              <div class="art">
+                <svg viewBox="0 0 300 170" class="art-svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <path d="M-10 140C60 40 120 170 190 96S270 40 320 30" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" opacity=".12"/>
+                  <g class="trace" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M-10 140C60 40 120 170 190 96S270 40 320 30"/></g>
+                  <circle r="5" fill="currentColor"><animateMotion dur="4.5s" repeatCount="indefinite" path="M-10 140C60 40 120 170 190 96S270 40 320 30"/></circle>
+                </svg>
+              </div>
+              <div class="ctop"><span class="cnum">06</span><span class="stat dimmed">Archive</span></div>
+              <h3>Small games</h3>
+              <p>Racing games and several unfinished experiments, made in Unity with C#.</p>
+              <ul class="chips"><li>Unity</li><li>C#</li><li>Racing</li></ul>
+            </article>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isSkills }}" hint-placeholder-val="{{ false }}">
+      <div class="skills">
+        <div>
+          <div class="kicker rise" style="--i: 1">03 / Skills</div>
+          <h2 class="huge rise" style="--i: 2">What I work with</h2>
+          <p class="note rise" style="--i: 3">Hover the orbit to pause it.</p>
+        </div>
+        <div class="orbit rise" style="--i: 3">
+          <span class="core"><b>skills</b></span>
+          <div class="ring" style="--rad: 9; --t: 48s; --dir: normal; --rdir: reverse">
+            <span class="sat" style="--a: 20deg"><span class="cw"><span class="cs"><span class="chip">C#</span></span></span></span>
+            <span class="sat" style="--a: 110deg"><span class="cw"><span class="cs"><span class="chip">Python</span></span></span></span>
+            <span class="sat" style="--a: 200deg"><span class="cw"><span class="cs"><span class="chip">TypeScript</span></span></span></span>
+            <span class="sat" style="--a: 290deg"><span class="cw"><span class="cs"><span class="chip">C++</span></span></span></span>
+          </div>
+          <div class="ring" style="--rad: 15; --t: 80s; --dir: reverse; --rdir: normal">
+            <span class="sat" style="--a: 10deg"><span class="cw"><span class="cs"><span class="chip">JavaScript</span></span></span></span>
+            <span class="sat" style="--a: 70deg"><span class="cw"><span class="cs"><span class="chip">HTML</span></span></span></span>
+            <span class="sat" style="--a: 130deg"><span class="cw"><span class="cs"><span class="chip">CSS</span></span></span></span>
+            <span class="sat" style="--a: 190deg"><span class="cw"><span class="cs"><span class="chip">Unity</span></span></span></span>
+            <span class="sat" style="--a: 250deg"><span class="cw"><span class="cs"><span class="chip">Blender</span></span></span></span>
+            <span class="sat" style="--a: 310deg"><span class="cw"><span class="cs"><span class="chip">Arduino</span></span></span></span>
+          </div>
+          <div class="ring" style="--rad: 21; --t: 120s; --dir: normal; --rdir: reverse">
+            <span class="sat" style="--a: 25deg"><span class="cw"><span class="cs"><span class="chip">Kali Linux</span></span></span></span>
+            <span class="sat" style="--a: 70deg"><span class="cw"><span class="cs"><span class="chip">CTF</span></span></span></span>
+            <span class="sat" style="--a: 115deg"><span class="cw"><span class="cs"><span class="chip">Cybersecurity</span></span></span></span>
+            <span class="sat" style="--a: 160deg"><span class="cw"><span class="cs"><span class="chip">Prompt engineering</span></span></span></span>
+            <span class="sat" style="--a: 205deg"><span class="cw"><span class="cs"><span class="chip">AI agents</span></span></span></span>
+            <span class="sat" style="--a: 250deg"><span class="cw"><span class="cs"><span class="chip">Minecraft mods</span></span></span></span>
+            <span class="sat" style="--a: 295deg"><span class="cw"><span class="cs"><span class="chip">Web apps</span></span></span></span>
+            <span class="sat" style="--a: 340deg"><span class="cw"><span class="cs"><span class="chip">Teaching</span></span></span></span>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isActivities }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div class="kicker rise" style="--i: 1">04 / Activities</div>
+        <h2 class="huge rise" style="--i: 2">What I have done</h2>
+        <div class="tl" style="margin-top: clamp(28px,5vh,56px)">
+          <div class="item">
+            <div class="box rise" style="--i: 3"><span class="tag">Now</span><h3>Teaching Arduinium at school</h3><p>Grades 5 to 7 build and program a robot in the browser. They took to it fastest.</p></div>
+            <div class="node"></div>
+          </div>
+          <div class="item r">
+            <div class="box rise" style="--i: 4"><span class="tag">Next</span><h3>Robotics club (to'garak)</h3><p>The school director invited me to run one.</p></div>
+            <div class="node"></div>
+          </div>
+          <div class="item">
+            <div class="box rise" style="--i: 5"><span class="tag">2026</span><h3>Purple Comet Math Meet</h3><p>First place in Uzbekistan, high school mixed team. Our team, F Students, scored 28 out of 30.<br><a class="more" href="img/cert-purple-comet.jpg" target="_blank" rel="noopener">Certificate ↗</a></p></div>
+            <div class="node"></div>
+          </div>
+          <div class="item r">
+            <div class="box rise" style="--i: 6"><span class="tag">2026</span><h3>ICO Uzbekistan</h3><p>National selection for the International Cybersecurity Olympiad. I placed 76th out of 1,200 participants.<br><a class="more" href="img/cert-ico.jpg" target="_blank" rel="noopener">Certificate ↗</a></p></div>
+            <div class="node"></div>
+          </div>
+          <div class="item">
+            <div class="box rise" style="--i: 7"><span class="tag">Ongoing</span><h3>CTF challenges</h3><p>Capture the flag practice, with Kali Linux as my base.</p></div>
+            <div class="node"></div>
+          </div>
+          <div class="item r">
+            <div class="box rise" style="--i: 8"><span class="tag">Exams</span><h3>IELTS 7 and SAT 1410</h3><p>The SAT is my October result: 800 in Math, 610 in English. I took it twice, and the first score was 1350.</p></div>
+            <div class="node"></div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isInterests }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div class="kicker rise" style="--i: 1">05 / Interests</div>
+        <h2 class="huge rise" style="--i: 2">What pulls me in</h2>
+        <div class="sky rise" style="--i: 3">
+          <a class="planet" href="https://www.chess.com/member/4ereb1" target="_blank" rel="noopener" style="--x: 14%; --y: 32%; --s: clamp(120px,17vmin,200px); --c1: #ffffff; --c2: #7b8aa6; --bt: 9s">
+            <div class="ballbox"><span class="ball"></span><span class="nm">Chess</span></div>
+            <p class="cap">I play on chess.com and built a tool to review my own games. Open my profile ↗</p>
+          </a>
+          <div class="planet ringed" style="--x: 42%; --y: 28%; --s: clamp(130px,19vmin,220px); --c1: #bff7ff; --c2: #2c7fff; --bt: 11s">
+            <div class="ballbox"><span class="ball"></span><span class="nm">AI agents</span></div>
+            <p class="cap">Working with coding agents on real projects, MitaAI included.</p>
+          </div>
+          <div class="planet" style="--x: 72%; --y: 34%; --s: clamp(120px,17vmin,200px); --c1: #ffd1a6; --c2: #d9553a; --bt: 10s">
+            <div class="ballbox"><span class="ball"></span><span class="nm">3D worlds</span></div>
+            <p class="cap">Blender scenes, like a foggy forest road, and small Unity games.</p>
+          </div>
+          <div class="planet" style="--x: 28%; --y: 76%; --s: clamp(100px,14vmin,170px); --c1: #c9ffe9; --c2: #17a37a; --bt: 8s">
+            <div class="ballbox"><span class="ball"></span><span class="nm">Football</span></div>
+            <p class="cap">In goal. Pretty good at it.</p>
+          </div>
+          <div class="planet" style="--x: 57%; --y: 72%; --s: clamp(110px,16vmin,190px); --c1: #ffd1f0; --c2: #c43d9e; --bt: 12s">
+            <div class="ballbox"><span class="ball"></span><span class="nm">Vibecoding</span></div>
+            <p class="cap">Building with prompts. Asking well is a skill of its own.</p>
+          </div>
+          <div class="planet" style="--x: 86%; --y: 74%; --s: clamp(110px,15vmin,180px); --c1: #e6d4ff; --c2: #6b4fd8; --bt: 9s">
+            <div class="ballbox"><span class="ball"></span><span class="nm">Cybersecurity</span></div>
+            <p class="cap">Kali Linux, CTF challenges and a national olympiad.</p>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isContact }}" hint-placeholder-val="{{ false }}">
+      <div class="contact">
+        <h2 class="hello rise" style="--i: 1">Say <em>hello.</em></h2>
+        <div class="rows rise" style="--i: 2">
+          <a class="row" href="https://github.com/nvidiarogforce-art" target="_blank" rel="noopener">GitHub <span>↗ nvidiarogforce-art</span></a>
+          <a class="row" href="https://www.linkedin.com/in/nizomiddin-soibnazarov" target="_blank" rel="noopener">LinkedIn <span>↗ nizomiddin-soibnazarov</span></a>
+          <a class="row" href="https://www.chess.com/member/4ereb1" target="_blank" rel="noopener">Chess.com <span>↗ 4ereb1</span></a>
+          <a class="row" href="https://www.curseforge.com/minecraft/mc-mods/nukerod-beta" target="_blank" rel="noopener">CurseForge <span>↗ Nukerod Beta</span></a>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ loaderOn }}" hint-placeholder-val="{{ true }}">
+  <div class="loader {{ loaderClass }}" style="--p: {{ progressNum }}" role="status" aria-label="Loading">
+    <div class="ld-core"><span class="ld-ring"></span><span class="ld-ring b"></span><span class="ld-ring c"></span><span class="ld-dot"></span></div>
+    <div class="ld-meta"><div class="ld-num">{{ progressText }}</div><div class="ld-txt">forming the universe</div></div>
+    <div class="ld-bar"><span style="width: {{ progressWidth }}"></span></div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+const ORBS = [
+  { id: 'about', num: '01', name: 'About me', hint: 'who is behind this', color: '#ffb36b', rgb: [1.0, 0.70, 0.42], land: [22, 36], port: [30, 17] },
+  { id: 'projects', num: '02', name: 'Projects', hint: 'things I built', color: '#78c2ff', rgb: [0.47, 0.76, 1.0], land: [52, 24], port: [72, 29] },
+  { id: 'skills', num: '03', name: 'Skills', hint: 'what I work with', color: '#b59bff', rgb: [0.71, 0.61, 1.0], land: [82, 38], port: [27, 43] },
+  { id: 'activities', num: '04', name: 'Activities', hint: 'what I have done', color: '#ff7fa6', rgb: [1.0, 0.50, 0.65], land: [38, 74], port: [71, 56] },
+  { id: 'interests', num: '05', name: 'Interests', hint: 'what pulls me in', color: '#66efc4', rgb: [0.40, 0.94, 0.77], land: [67, 72], port: [29, 69] },
+  { id: 'contact', num: '06', name: 'Contact', hint: 'say hello', color: '#eaf0ff', rgb: [0.92, 0.95, 1.0], land: [11, 66], port: [69, 82] }
+];
+
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const EASE = {
+  outExpo: t => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  outCubic: t => 1 - Math.pow(1 - t, 3),
+  inCubic: t => t * t * t,
+  inOutCubic: t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+};
+
+const VS_QUAD = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+const VS_BG = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position.xy, 0.9999, 1.0);
+}`;
+const FS_BG = `
+varying vec2 vUv;
+uniform float uGlow;
+void main() {
+  vec2 p = vUv - 0.5;
+  p.x *= 1.25;
+  float r = length(p);
+  vec3 base = mix(vec3(0.010, 0.014, 0.040), vec3(0.0, 0.0, 0.004), smoothstep(0.0, 0.75, r));
+  vec3 glow = vec3(0.30, 0.16, 0.46) * exp(-r * r * 8.0) * uGlow * 0.16;
+  gl_FragColor = vec4(base + glow, 1.0);
+}`;
+
+const FS_STAR = `
+uniform vec3 uColor;
+uniform float uTime;
+uniform float uI;
+uniform float uSpike;
+uniform float uSeed;
+varying vec2 vUv;
+void main() {
+  vec2 p = (vUv - 0.5) * 2.0;
+  float r = length(p);
+  float core = exp(-r * r * 90.0);
+  float halo = exp(-r * 5.5) * 0.7;
+  float sx = exp(-abs(p.y) * 55.0) * exp(-abs(p.x) * 4.0);
+  float sy = exp(-abs(p.x) * 55.0) * exp(-abs(p.y) * 4.0);
+  vec2 q = vec2(p.x + p.y, p.x - p.y) * 0.70710678;
+  float dx = exp(-abs(q.y) * 90.0) * exp(-abs(q.x) * 7.0);
+  float dy = exp(-abs(q.x) * 90.0) * exp(-abs(q.y) * 7.0);
+  float tw = 0.86 + 0.14 * sin(uTime * 2.1 + uSeed * 6.2831);
+  float spikes = (sx + sy) * uSpike + (dx + dy) * uSpike * 0.4;
+  float edge = (1.0 - smoothstep(0.82, 1.0, abs(p.x))) * (1.0 - smoothstep(0.82, 1.0, abs(p.y)));
+  float v = (core * 2.2 + halo + spikes) * uI * tw * edge;
+  vec3 col = mix(uColor, vec3(1.0), clamp(core * 1.4, 0.0, 1.0));
+  gl_FragColor = vec4(col * v, 1.0);
+}`;
+
+const VS_DUST = `
+attribute float aScale;
+attribute float aPhase;
+attribute vec3 aColor;
+uniform float uTime;
+uniform float uPR;
+uniform float uSize;
+varying vec3 vColor;
+varying float vTw;
+void main() {
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * mv;
+  gl_PointSize = max(uSize * uPR * aScale * (60.0 / -mv.z), 1.0);
+  vColor = aColor;
+  vTw = 0.7 + 0.3 * sin(uTime * (0.5 + aPhase * 1.5) + aPhase * 60.0);
+}`;
+const FS_DOT = `
+uniform float uAlpha;
+varying vec3 vColor;
+varying float vTw;
+void main() {
+  float d = length(gl_PointCoord - vec2(0.5));
+  float a = pow(clamp(1.0 - d * 2.0, 0.0, 1.0), 2.4);
+  gl_FragColor = vec4(vColor * a * vTw * uAlpha, 1.0);
+}`;
+
+const VS_SPARK = `
+attribute vec3 aDir;
+attribute vec4 aData;
+uniform float uT;
+uniform float uPR;
+varying vec3 vColor;
+varying float vA;
+void main() {
+  float t = max(uT, 0.0);
+  float speed = aData.x;
+  float life = aData.y;
+  float rnd = aData.z;
+  float sz = aData.w;
+  float k = 1.5 + rnd * 1.7;
+  float dist = speed * (1.0 - exp(-k * t)) / k;
+  vec3 p = aDir * dist;
+  float wob = 1.0 - exp(-t * 0.7);
+  p += vec3(sin(rnd * 91.0 + t * 1.3), cos(rnd * 57.0 + t * 1.1), sin(rnd * 33.0 + t * 0.9)) * 0.25 * wob;
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  float fade = clamp(1.0 - t / life, 0.0, 1.0);
+  float hot = exp(-t * 2.6);
+  float linger = step(0.87, rnd);
+  float tw = 0.55 + 0.45 * sin(t * 1.9 + rnd * 70.0);
+  float alpha = max(pow(fade, 1.5), linger * 0.26 * tw * smoothstep(0.0, 1.0, t));
+  alpha *= step(0.0001, uT);
+  vec3 warm = mix(vec3(1.0, 0.5, 0.16), vec3(0.55, 0.45, 1.0), rnd);
+  vColor = mix(warm, vec3(1.0, 0.96, 0.86), hot);
+  vA = alpha * (1.0 + hot * 1.2);
+  gl_PointSize = max(sz * uPR * (1.0 + hot * 1.6) * (0.45 + 0.55 * fade) * (46.0 / -mv.z), 1.0);
+}`;
+
+const VS_TRAIL = `
+attribute float aAge;
+attribute vec3 aColor;
+attribute float aVis;
+uniform float uPR;
+varying vec3 vColor;
+varying float vA;
+void main() {
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * mv;
+  float s = 1.0 - aAge;
+  gl_PointSize = max((3.0 + 22.0 * s * s) * uPR * (9.0 / -mv.z), 1.0);
+  vColor = mix(aColor, vec3(1.0), s * 0.4);
+  vA = s * s * aVis * 0.9;
+}`;
+const FS_SOFT = `
+varying vec3 vColor;
+varying float vA;
+void main() {
+  float d = length(gl_PointCoord - vec2(0.5));
+  float a = pow(clamp(1.0 - d * 2.0, 0.0, 1.0), 2.0);
+  gl_FragColor = vec4(vColor * a * vA, 1.0);
+}`;
+
+const FS_RING = `
+uniform float uP;
+uniform float uW;
+uniform float uA;
+uniform vec3 uColor;
+varying vec2 vUv;
+void main() {
+  vec2 p = (vUv - 0.5) * 2.0;
+  float r = length(p);
+  float d = (r - uP) / uW;
+  float ring = exp(-d * d);
+  float inner = (1.0 - smoothstep(max(uP - 0.45, 0.0), uP, r)) * 0.1;
+  float v = (ring + inner) * uA * (1.0 - uP) * (1.0 - step(1.0, r));
+  gl_FragColor = vec4(uColor * v, 1.0);
+}`;
+
+const FS_CLOUD = `
+uniform float uA;
+uniform float uSeed;
+uniform vec3 uColor;
+varying vec2 vUv;
+void main() {
+  vec2 p = (vUv - 0.5) * 2.0;
+  float r = length(p);
+  float ang = atan(p.y, p.x);
+  float wob = 0.72 + 0.28 * sin(ang * 3.0 + uSeed * 10.0) * sin(ang * 5.0 - uSeed * 6.0);
+  float a = pow(clamp(1.0 - r / wob, 0.0, 1.0), 2.2);
+  gl_FragColor = vec4(uColor * a * uA, 1.0);
+}`;
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      portrait: false, progress: 0, loaderOut: false, loaderGone: false, canIgnite: false,
+      phase: 'loading', flash: false, labels: false, live: false, menuAway: false,
+      section: '', panelMounted: false, panelOpen: false, leaving: false,
+      photo: '', copied: '', noGL: false
+    };
+    this.alive = false;
+    this.fx = null;
+    this.timers = [];
+    this.mx = 0;
+    this.my = 0;
+    this.sceneReady = false;
+    this.fontsReady = false;
+    this.reduced = false;
+
+    this.ignite = () => this.doIgnite();
+    this.close = () => this.doClose();
+    this.seedIn = () => { if (this.fx) this.fx.seedHover = true; };
+    this.seedOut = () => { if (this.fx) this.fx.seedHover = false; };
+    this.onPanelKey = e => { if (e && e.key === 'Escape') this.doClose(); };
+
+    this.tilt = e => {
+      const el = e.currentTarget;
+      if (!el || !el.getBoundingClientRect) return;
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      el.style.setProperty('--ry', ((px - 0.5) * 12).toFixed(2) + 'deg');
+      el.style.setProperty('--rx', ((0.5 - py) * 10).toFixed(2) + 'deg');
+      el.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+      el.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+    };
+    this.untilt = e => {
+      const el = e.currentTarget;
+      if (!el) return;
+      el.style.setProperty('--rx', '0deg');
+      el.style.setProperty('--ry', '0deg');
+    };
+    this.onPhoto = e => {
+      const f = e && e.target && e.target.files && e.target.files[0];
+      if (!f || !/^image\//.test(f.type)) return;
+      const r = new FileReader();
+      r.onload = () => { if (this.alive) this.setState({ photo: String(r.result) }); };
+      r.readAsDataURL(f);
+    };
+    this.copyMail = () => {
+      const el = document.getElementById('bb-mail');
+      const txt = el ? el.textContent.trim() : '';
+      const done = ok => {
+        this.setState({ copied: ok ? 'ok' : 'fail' });
+        this.later(() => this.setState({ copied: '' }), 2200);
+      };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => done(true), () => done(false));
+        else done(false);
+      } catch (err) { done(false); }
+    };
+  }
+
+  later(fn, ms) {
+    const id = setTimeout(() => { if (this.alive) fn(); }, ms);
+    this.timers.push(id);
+    return id;
+  }
+
+  calcPortrait() {
+    const c = document.getElementById('bb-gl');
+    const w = (c && c.clientWidth) || window.innerWidth || 1280;
+    const h = (c && c.clientHeight) || window.innerHeight || 720;
+    return w / h < 0.82;
+  }
+
+  componentDidMount() {
+    this.alive = true;
+    this.reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    this.t0 = performance.now();
+    const p = this.calcPortrait();
+    if (p !== this.state.portrait) this.setState({ portrait: p });
+
+    this.onResize = () => {
+      const q = this.calcPortrait();
+      if (q !== this.state.portrait) this.setState({ portrait: q });
+      if (this.fx) this.fx.resize();
+    };
+    this.onMove = e => {
+      const w = window.innerWidth || 1;
+      const h = window.innerHeight || 1;
+      this.mx = e.clientX / w * 2 - 1;
+      this.my = -(e.clientY / h * 2 - 1);
+    };
+    window.addEventListener('resize', this.onResize);
+    window.addEventListener('pointermove', this.onMove, { passive: true });
+
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { this.fontsReady = true; });
+    this.later(() => { this.fontsReady = true; }, 3500);
+
+    this.boot(0);
+    this.loadTick();
+  }
+
+  componentWillUnmount() {
+    this.alive = false;
+    this.timers.forEach(id => clearTimeout(id));
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('pointermove', this.onMove);
+    if (this.fx) { try { this.fx.dispose(); } catch (e) { } this.fx = null; }
+  }
+
+  boot(n) {
+    if (!this.alive) return;
+    const canvas = document.getElementById('bb-gl');
+    if (!canvas) {
+      if (n < 80) this.later(() => this.boot(n + 1), 50);
+      else { this.sceneReady = true; this.setState({ noGL: true }); }
+      return;
+    }
+    try {
+      this.fx = this.buildWorld(canvas);
+      this.sceneReady = true;
+    } catch (err) {
+      console.error(err);
+      this.fx = null;
+      this.sceneReady = true;
+      this.setState({ noGL: true });
+    }
+  }
+
+  loadTick() {
+    if (!this.alive) return;
+    const el = (performance.now() - this.t0) / 1000;
+    const k = Math.min(1, el / 2.6);
+    const eased = 1 - Math.pow(1 - k, 3);
+    let cap = 100;
+    if (!this.sceneReady) cap = 34;
+    else if (!this.fontsReady) cap = 90;
+    const p = Math.min(Math.round(eased * 100), cap);
+    if (p !== this.state.progress) this.setState({ progress: p });
+    if (p >= 100) { this.finishLoad(); return; }
+    requestAnimationFrame(() => this.loadTick());
+  }
+
+  finishLoad() {
+    this.later(() => {
+      this.setState({ loaderOut: true, phase: 'idle' });
+      if (this.fx) this.fx.startIntro();
+      this.later(() => this.setState({ canIgnite: true }), this.reduced ? 300 : 2300);
+      this.later(() => this.setState({ loaderGone: true }), 2100);
+    }, 350);
+  }
+
+  doIgnite() {
+    const s = this.state;
+    if (s.phase !== 'idle' || !s.canIgnite) return;
+    this.setState({ phase: 'charge' });
+    const charge = this.reduced ? 250 : 900;
+    if (this.fx) this.fx.charge(charge / 1000);
+    this.later(() => {
+      this.setState({ phase: 'bang', flash: true });
+      if (this.fx) this.fx.boom();
+      this.later(() => this.setState({ labels: true }), this.reduced ? 300 : 2300);
+      this.later(() => this.setState({ live: true, phase: 'stars' }), this.reduced ? 500 : 2700);
+      this.later(() => this.setState({ flash: false }), 2100);
+    }, charge);
+  }
+
+  openSection(i) {
+    const s = this.state;
+    if (!s.live || s.section || s.menuAway) return;
+    const o = ORBS[i];
+    this.setState({ section: o.id, menuAway: true, phase: 'warp' });
+    if (this.fx) { this.fx.hover = -1; this.fx.warp(i, true); }
+    const d = this.reduced ? 100 : 520;
+    this.later(() => this.setState({ panelMounted: true }), d);
+    this.later(() => this.setState({ panelOpen: true }), d + 70);
+    this.later(() => {
+      if (this.state.section && !this.state.leaving) { this.setState({ phase: 'panel' }); this.focusBack(); }
+    }, d + 1150);
+  }
+
+  doClose() {
+    const s = this.state;
+    if (!s.panelOpen || s.leaving) return;
+    this.setState({ leaving: true, phase: 'back' });
+    if (this.fx) this.fx.warp(-1, false);
+    const t = this.reduced ? 150 : 1000;
+    this.later(() => this.setState({ menuAway: false }), Math.round(t * 0.55));
+    this.later(() => this.setState({ panelMounted: false, panelOpen: false, leaving: false, section: '', phase: 'stars' }), t + 60);
+  }
+
+  focusBack() {
+    try {
+      const b = document.querySelector('[data-back]');
+      if (b && b.focus) b.focus({ preventScroll: true });
+    } catch (e) { }
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pt = s.portrait;
+    const sec = s.section;
+    const idx = ORBS.findIndex(o => o.id === sec);
+    const cur = idx >= 0 ? ORBS[idx] : null;
+    const at = cur ? (pt ? cur.port : cur.land) : [50, 50];
+    const interactive = s.live && !s.menuAway;
+    const orbs = ORBS.map((o, i) => {
+      const p = pt ? o.port : o.land;
+      return {
+        num: o.num, name: o.name, hint: o.hint, color: o.color,
+        left: p[0] + '%', top: p[1] + '%', delay: (i * 0.11).toFixed(2) + 's',
+        cls: (s.labels ? 'on ' : '') + (interactive ? 'live ' : '') + (s.menuAway ? 'away' : ''),
+        aria: o.name + ', ' + o.hint,
+        off: !interactive,
+        open: () => this.openSection(i),
+        enter: () => { if (this.fx) this.fx.hover = i; },
+        leave: () => { if (this.fx) this.fx.hover = -1; }
+      };
+    });
+    const showSeed = s.loaderOut && (s.phase === 'idle' || s.phase === 'charge');
+    const armed = s.canIgnite && s.phase === 'idle';
+    return {
+      orbs: orbs,
+      rootClass: (s.noGL ? 'nogl ' : '') + (sec ? 'insec' : ''),
+      loaderOn: !s.loaderGone,
+      loaderClass: s.loaderOut ? 'out' : '',
+      progressText: String(s.progress).padStart(3, '0'),
+      progressNum: s.progress,
+      progressWidth: s.progress + '%',
+      seedClass: (showSeed ? 'show ' : '') + (s.phase === 'charge' ? 'charging' : ''),
+      seedDisabled: !armed,
+      hintClass: armed ? 'show' : '',
+      flashClass: s.flash ? 'go' : '',
+      panelMounted: s.panelMounted,
+      panelClass: (s.panelOpen ? 'open ' : '') + (s.leaving ? 'leaving' : ''),
+      ox: at[0] + '%',
+      oy: at[1] + '%',
+      accent: cur ? cur.color : '#ffffff',
+      panelTitle: cur ? cur.name : '',
+      tagNum: cur ? cur.num : '',
+      tagName: cur ? cur.name : '',
+      isAbout: sec === 'about',
+      isProjects: sec === 'projects',
+      isSkills: sec === 'skills',
+      isActivities: sec === 'activities',
+      isInterests: sec === 'interests',
+      isContact: sec === 'contact',
+      photo: s.photo,
+      hasPhoto: !!s.photo,
+      noPhoto: !s.photo,
+      copyLabel: s.copied === 'ok' ? 'Copied' : (s.copied === 'fail' ? 'Select and copy' : 'Copy'),
+      ignite: this.ignite,
+      close: this.close,
+      seedIn: this.seedIn,
+      seedOut: this.seedOut,
+      onPanelKey: this.onPanelKey,
+      tilt: this.tilt,
+      untilt: this.untilt,
+      onPhoto: this.onPhoto,
+      copyMail: this.copyMail
+    };
+  }
+
+  buildWorld(canvas) {
+    const B = window.BBThree;
+    if (!B || !B.WebGLRenderer) throw new Error('3D library did not load');
+    const { WebGLRenderer, Scene, PerspectiveCamera, Group, Mesh, PlaneGeometry, ShaderMaterial, Points, BufferGeometry, BufferAttribute, Vector2, Vector3, AdditiveBlending, EffectComposer, RenderPass, UnrealBloomPass } = B;
+    const self = this;
+    const reduced = this.reduced;
+    const tS = reduced ? 1.8 : 1;
+    const dimsOf = () => [canvas.clientWidth || window.innerWidth || 1280, canvas.clientHeight || window.innerHeight || 720];
+    let dm = dimsOf();
+    let W = dm[0];
+    let H = dm[1];
+    const weak = Math.min(W, H) < 700 || (navigator.hardwareConcurrency || 8) <= 4;
+    const dpr = Math.min(window.devicePixelRatio || 1, weak ? 1.5 : 1.75);
+
+    const renderer = new WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(W, H, false);
+    renderer.setClearColor(0x000000, 1);
+
+    const scene = new Scene();
+    const FOV = 50;
+    const Z0 = 9;
+    const camera = new PerspectiveCamera(FOV, W / H, 0.1, 400);
+    camera.position.set(0, 0, 15);
+
+    const composer = new EffectComposer(renderer);
+    composer.setSize(W, H);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(new Vector2(W, H), 0.9, 0.55, 0.28);
+    composer.addPass(bloom);
+
+    const additive = (vs, fs, uniforms) => new ShaderMaterial({ vertexShader: vs, fragmentShader: fs, uniforms: uniforms, transparent: true, depthWrite: false, depthTest: false, blending: AdditiveBlending });
+    const sg = () => (Math.random() < 0.5 ? 1 : -1);
+    const rp = p => Math.pow(Math.random(), p) * sg();
+
+    // ---- deep space backdrop
+    const bgMat = new ShaderMaterial({ vertexShader: VS_BG, fragmentShader: FS_BG, uniforms: { uGlow: { value: 0.2 } }, depthTest: false, depthWrite: false });
+    const bg = new Mesh(new PlaneGeometry(2, 2), bgMat);
+    bg.frustumCulled = false;
+    bg.renderOrder = -100;
+    scene.add(bg);
+
+    // ---- spiral galaxy
+    const gN = weak ? 28000 : 52000;
+    const gPos = new Float32Array(gN * 3);
+    const gCol = new Float32Array(gN * 3);
+    const gScale = new Float32Array(gN);
+    const gPhase = new Float32Array(gN);
+    const RAD = 8.5;
+    const ARMS = 4;
+    const SPIN = 1.15;
+    const cIn = [1.0, 0.66, 0.36];
+    const cMid = [0.78, 0.42, 0.92];
+    const cOut = [0.30, 0.45, 1.0];
+    for (let i = 0; i < gN; i++) {
+      const r = Math.pow(Math.random(), 0.8) * RAD;
+      const a = (i % ARMS) / ARMS * Math.PI * 2 + r * SPIN;
+      const x = Math.cos(a) * r + rp(3) * 0.7 * (0.4 + r * 0.18);
+      const z = Math.sin(a) * r + rp(3) * 0.7 * (0.4 + r * 0.18);
+      const y = rp(3) * 0.4 * (1.2 - r / RAD);
+      gPos[i * 3] = x; gPos[i * 3 + 1] = y; gPos[i * 3 + 2] = z;
+      const t = r / RAD;
+      let c0, c1, m;
+      if (t < 0.45) { c0 = cIn; c1 = cMid; m = t / 0.45; } else { c0 = cMid; c1 = cOut; m = (t - 0.45) / 0.55; }
+      const br = 0.45 + Math.random() * 0.55;
+      gCol[i * 3] = lerp(c0[0], c1[0], m) * br;
+      gCol[i * 3 + 1] = lerp(c0[1], c1[1], m) * br;
+      gCol[i * 3 + 2] = lerp(c0[2], c1[2], m) * br;
+      gScale[i] = 0.35 + Math.pow(Math.random(), 3) * 1.1;
+      gPhase[i] = Math.random();
+    }
+    const gGeo = new BufferGeometry();
+    gGeo.setAttribute('position', new BufferAttribute(gPos, 3));
+    gGeo.setAttribute('aColor', new BufferAttribute(gCol, 3));
+    gGeo.setAttribute('aScale', new BufferAttribute(gScale, 1));
+    gGeo.setAttribute('aPhase', new BufferAttribute(gPhase, 1));
+    const gMat = additive(VS_DUST, FS_DOT, { uTime: { value: 0 }, uPR: { value: dpr }, uSize: { value: 0.62 }, uAlpha: { value: 0 } });
+    const galaxy = new Points(gGeo, gMat);
+    galaxy.frustumCulled = false;
+    const galaxyPivot = new Group();
+    galaxyPivot.add(galaxy);
+    const galaxyTilt = new Group();
+    galaxyTilt.add(galaxyPivot);
+    galaxyTilt.rotation.set(1.12, 0, 0.42);
+    galaxyTilt.position.set(-1.6, -0.5, -4.5);
+    scene.add(galaxyTilt);
+
+    // ---- far star dust
+    const dN = weak ? 900 : 2200;
+    const dPos = new Float32Array(dN * 3);
+    const dCol = new Float32Array(dN * 3);
+    const dScale = new Float32Array(dN);
+    const dPhase = new Float32Array(dN);
+    for (let i = 0; i < dN; i++) {
+      dPos[i * 3] = (Math.random() - 0.5) * 170;
+      dPos[i * 3 + 1] = (Math.random() - 0.5) * 110;
+      dPos[i * 3 + 2] = -25 - Math.random() * 85;
+      const w = Math.random();
+      const br = 0.5 + Math.random() * 0.5;
+      if (w < 0.6) { dCol[i * 3] = br; dCol[i * 3 + 1] = br; dCol[i * 3 + 2] = br; }
+      else if (w < 0.85) { dCol[i * 3] = br * 0.6; dCol[i * 3 + 1] = br * 0.75; dCol[i * 3 + 2] = br; }
+      else { dCol[i * 3] = br; dCol[i * 3 + 1] = br * 0.8; dCol[i * 3 + 2] = br * 0.55; }
+      dScale[i] = 0.6 + Math.random() * 1.0;
+      dPhase[i] = Math.random();
+    }
+    const dGeo = new BufferGeometry();
+    dGeo.setAttribute('position', new BufferAttribute(dPos, 3));
+    dGeo.setAttribute('aColor', new BufferAttribute(dCol, 3));
+    dGeo.setAttribute('aScale', new BufferAttribute(dScale, 1));
+    dGeo.setAttribute('aPhase', new BufferAttribute(dPhase, 1));
+    const dMat = additive(VS_DUST, FS_DOT, { uTime: { value: 0 }, uPR: { value: dpr }, uSize: { value: 1.6 }, uAlpha: { value: 0 } });
+    const dust = new Points(dGeo, dMat);
+    dust.frustumCulled = false;
+    scene.add(dust);
+
+    // ---- the first star
+    const seedMat = additive(VS_QUAD, FS_STAR, { uColor: { value: new Vector3(1.0, 0.86, 0.6) }, uTime: { value: 0 }, uI: { value: 0 }, uSpike: { value: 1.0 }, uSeed: { value: 0.3 } });
+    const seed = new Mesh(new PlaneGeometry(1, 1), seedMat);
+    seed.renderOrder = 10;
+    scene.add(seed);
+
+    // ---- the six stars
+    const orbs = ORBS.map((o, i) => {
+      const m = additive(VS_QUAD, FS_STAR, { uColor: { value: new Vector3(o.rgb[0], o.rgb[1], o.rgb[2]) }, uTime: { value: 0 }, uI: { value: 0 }, uSpike: { value: 0.95 }, uSeed: { value: i * 0.173 + 0.1 } });
+      const mesh = new Mesh(new PlaneGeometry(1, 1), m);
+      mesh.renderOrder = 11;
+      scene.add(mesh);
+      return { mesh: mesh, m: m, rgb: o.rgb, target: new Vector3(), delay: 0.04 + i * 0.09, dur: 1.55 + i * 0.13 + (i % 2) * 0.2, swirl: (i % 2 ? 1 : -1) * (0.7 + (i % 3) * 0.35), hov: 0, e: 0, hx: null };
+    });
+
+    // ---- explosion: sparks
+    const sN = weak ? 4200 : 9000;
+    const sDir = new Float32Array(sN * 3);
+    const sData = new Float32Array(sN * 4);
+    const sPos = new Float32Array(sN * 3);
+    for (let i = 0; i < sN; i++) {
+      let x, y, z, l2;
+      do { x = Math.random() * 2 - 1; y = Math.random() * 2 - 1; z = Math.random() * 2 - 1; l2 = x * x + y * y + z * z; } while (l2 > 1 || l2 < 0.0001);
+      const l = Math.sqrt(l2);
+      sDir[i * 3] = x / l; sDir[i * 3 + 1] = y / l; sDir[i * 3 + 2] = z / (l * 1.9);
+      sData[i * 4] = 3.5 + Math.pow(Math.random(), 0.6) * 22;
+      sData[i * 4 + 1] = 1.8 + Math.random() * 3.2;
+      sData[i * 4 + 2] = Math.random();
+      sData[i * 4 + 3] = 0.5 + Math.pow(Math.random(), 2.2) * 2.0;
+    }
+    const sGeo = new BufferGeometry();
+    sGeo.setAttribute('position', new BufferAttribute(sPos, 3));
+    sGeo.setAttribute('aDir', new BufferAttribute(sDir, 3));
+    sGeo.setAttribute('aData', new BufferAttribute(sData, 4));
+    const sMat = additive(VS_SPARK, FS_SOFT, { uT: { value: -1 }, uPR: { value: dpr } });
+    const sparks = new Points(sGeo, sMat);
+    sparks.frustumCulled = false;
+    sparks.renderOrder = 8;
+    scene.add(sparks);
+
+    // ---- explosion: orb trails
+    const TL = 28;
+    const tN = orbs.length * TL;
+    const tPos = new Float32Array(tN * 3);
+    const tAge = new Float32Array(tN);
+    const tCol = new Float32Array(tN * 3);
+    const tVis = new Float32Array(tN);
+    orbs.forEach((o, i) => {
+      o.hx = new Float32Array(TL * 3);
+      for (let j = 0; j < TL; j++) {
+        tAge[i * TL + j] = j / TL;
+        tCol[(i * TL + j) * 3] = o.rgb[0]; tCol[(i * TL + j) * 3 + 1] = o.rgb[1]; tCol[(i * TL + j) * 3 + 2] = o.rgb[2];
+      }
+    });
+    const tGeo = new BufferGeometry();
+    tGeo.setAttribute('position', new BufferAttribute(tPos, 3));
+    tGeo.setAttribute('aAge', new BufferAttribute(tAge, 1));
+    tGeo.setAttribute('aColor', new BufferAttribute(tCol, 3));
+    tGeo.setAttribute('aVis', new BufferAttribute(tVis, 1));
+    const tMat = additive(VS_TRAIL, FS_SOFT, { uPR: { value: dpr } });
+    const trail = new Points(tGeo, tMat);
+    trail.frustumCulled = false;
+    trail.renderOrder = 9;
+    scene.add(trail);
+
+    // ---- explosion: shockwaves and gas clouds
+    const rings = [
+      { col: [1.0, 0.92, 0.78], w: 0.05, size: 30, delay: 0.0, dur: 2.6, a: 1.7 },
+      { col: [1.0, 0.55, 0.22], w: 0.09, size: 34, delay: 0.12, dur: 3.2, a: 1.2 },
+      { col: [0.5, 0.55, 1.0], w: 0.14, size: 38, delay: 0.28, dur: 3.6, a: 0.9 }
+    ].map(d => {
+      const m = additive(VS_QUAD, FS_RING, { uP: { value: 0 }, uW: { value: d.w }, uA: { value: d.a }, uColor: { value: new Vector3(d.col[0], d.col[1], d.col[2]) } });
+      const mesh = new Mesh(new PlaneGeometry(1, 1), m);
+      mesh.scale.setScalar(d.size);
+      mesh.renderOrder = 7;
+      scene.add(mesh);
+      return { mesh: mesh, m: m, delay: d.delay, dur: d.dur };
+    });
+    const palette = [[1.0, 0.45, 0.12], [0.9, 0.2, 0.6], [0.45, 0.3, 1.0], [0.2, 0.45, 1.0]];
+    const cN = weak ? 6 : 12;
+    const clouds = [];
+    for (let i = 0; i < cN; i++) {
+      const c = palette[i % palette.length];
+      const m = additive(VS_QUAD, FS_CLOUD, { uA: { value: 0 }, uSeed: { value: Math.random() }, uColor: { value: new Vector3(c[0], c[1], c[2]) } });
+      const mesh = new Mesh(new PlaneGeometry(1, 1), m);
+      mesh.position.set((Math.random() - 0.5) * 2.4, (Math.random() - 0.5) * 1.6, -0.5 - Math.random());
+      mesh.renderOrder = 6;
+      scene.add(mesh);
+      clouds.push({ mesh: mesh, m: m, size: 12 + Math.random() * 12, delay: Math.random() * 0.3, dur: 3.0 + Math.random() * 1.6, a: 0.3 + Math.random() * 0.22 });
+    }
+
+    // ---- layout: stars live at the same screen percentages the labels use
+    const view = { halfH: 1, halfW: 1, u: 1 };
+    const layout = () => {
+      dm = dimsOf(); W = dm[0]; H = dm[1];
+      view.halfH = Z0 * Math.tan(FOV * Math.PI / 360);
+      view.halfW = view.halfH * W / H;
+      view.u = Math.min(1, view.halfW / (view.halfH * 1.15));
+      const portrait = W / H < 0.82;
+      ORBS.forEach((o, i) => {
+        const p = portrait ? o.port : o.land;
+        orbs[i].target.set((p[0] / 50 - 1) * view.halfW, (1 - p[1] / 50) * view.halfH, 0);
+      });
+    };
+    layout();
+
+    // ---- compile everything once so the bang never hitches
+    const later = [sparks, trail].concat(rings.map(r => r.mesh), clouds.map(c => c.mesh), orbs.map(o => o.mesh));
+    later.forEach(m => { m.visible = true; });
+    try { renderer.compile(scene, camera); composer.render(0.016); } catch (e) { }
+    later.forEach(m => { m.visible = false; });
+
+    // ---- state machine
+    const fx = { hover: -1, seedHover: false, dead: false, raf: 0 };
+    let time = 0;
+    let last = performance.now();
+    let introT0 = -1;
+    let chargeT0 = -1;
+    let chargeDur = 0.9;
+    let bangT0 = -1;
+    let wIdx = -1;
+    let wDir = 0;
+    let wP = 0;
+    const wDur = reduced ? 0.5 : 1.25;
+    let px = 0;
+    let py = 0;
+    let sh = 0;
+    let frame = 0;
+
+    fx.startIntro = () => { introT0 = time; };
+    fx.charge = d => { chargeT0 = time; chargeDur = d; };
+    fx.boom = () => {
+      bangT0 = time;
+      seed.visible = false;
+      sparks.visible = true;
+      trail.visible = true;
+      rings.forEach(r => { r.mesh.visible = true; });
+      clouds.forEach(c => { c.mesh.visible = true; });
+    };
+    fx.warp = (i, enter) => {
+      if (enter) { wIdx = i; wDir = 1; } else { wDir = -1; }
+    };
+    fx.resize = () => {
+      dm = dimsOf(); W = dm[0]; H = dm[1];
+      renderer.setSize(W, H, false);
+      composer.setSize(W, H);
+      camera.aspect = W / H;
+      camera.updateProjectionMatrix();
+      layout();
+    };
+    fx.dispose = () => {
+      fx.dead = true;
+      cancelAnimationFrame(fx.raf);
+      scene.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+      try { composer.dispose(); } catch (e) { }
+      renderer.dispose();
+    };
+
+    sparks.visible = false;
+    trail.visible = false;
+
+    const tick = now => {
+      if (fx.dead || !self.alive) return;
+      fx.raf = requestAnimationFrame(tick);
+      const dt = Math.min(Math.max((now - last) / 1000, 0), 0.05);
+      last = now;
+      time += dt;
+      frame++;
+
+      const k3 = Math.min(1, dt * 2.5);
+      px += ((self.mx || 0) - px) * k3;
+      py += ((self.my || 0) - py) * k3;
+
+      const intro = introT0 < 0 ? 0 : clamp01((time - introT0) / (reduced ? 0.5 : 2.2));
+      const ie = EASE.outCubic(intro);
+      const baseZ = lerp(15, Z0, ie);
+
+      const banged = bangT0 >= 0;
+      const bt = banged ? time - bangT0 : -1;
+      const cpA = (chargeT0 >= 0 && !banged) ? clamp01((time - chargeT0) / chargeDur) : 0;
+
+      if (wDir !== 0) {
+        wP = clamp01(wP + wDir * dt / wDur);
+        if (wDir < 0 && wP <= 0) { wDir = 0; wIdx = -1; }
+        if (wDir > 0 && wP >= 1) wDir = 0;
+      }
+      const we = EASE.inOutCubic(wP);
+
+      // camera: intro dolly, charge tremor, bang kick, zoom into a star
+      const kick = banged ? Math.exp(-bt * 3.2) * Math.cos(bt * 9.0) : 0;
+      const shAmp = (reduced ? 0 : 1) * (banged ? 0.32 * Math.exp(-bt * 3.4) : 0.06 * cpA * cpA);
+      const shx = shAmp * (Math.sin(time * 53.0) + Math.sin(time * 37.0));
+      const shy = shAmp * (Math.sin(time * 47.0 + 1.3) + Math.sin(time * 61.0));
+      if (wIdx >= 0) {
+        const T = orbs[wIdx].target;
+        camera.position.set(lerp(0, T.x * 0.92, we) + shx, lerp(0, T.y * 0.92, we) + shy, lerp(baseZ, 3.4, we));
+        camera.lookAt(T.x * we, T.y * we, 0);
+      } else {
+        camera.position.set(shx, shy, baseZ);
+        camera.lookAt(0, 0, 0);
+      }
+      const fov = FOV + 14 * Math.sin(Math.PI * we) + 9 * kick;
+      if (Math.abs(fov - camera.fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
+      camera.updateMatrixWorld();
+
+      // galaxy + dust
+      const spin = 0.045 + cpA * cpA * 0.9 + Math.sin(Math.PI * we) * 0.9 + (banged ? 0.5 * Math.exp(-bt * 1.2) : 0);
+      galaxyPivot.rotation.y += dt * spin;
+      galaxyTilt.position.set(-1.6 - px * 0.45, -0.5 - py * 0.3, -4.5);
+      dust.position.set(-px * 0.9, -py * 0.6, 0);
+      gMat.uniforms.uTime.value = time;
+      gMat.uniforms.uAlpha.value = ie;
+      dMat.uniforms.uTime.value = time;
+      dMat.uniforms.uAlpha.value = ie;
+      bgMat.uniforms.uGlow.value = 0.2 + 0.6 * cpA + (banged ? 0.9 * Math.exp(-bt * 0.5) : 0) + 0.3 * we;
+
+      // the first star
+      sh += ((fx.seedHover ? 1 : 0) - sh) * Math.min(1, dt * 6);
+      if (seed.visible) {
+        const seedI = introT0 < 0 ? 0 : clamp01((time - introT0 - 0.8) / 1.2);
+        const sc = lerp(1, 0.42, EASE.inCubic(cpA)) * (1 + 0.18 * sh);
+        seed.scale.setScalar(3.6 * view.u * sc);
+        const pulse = 1 + 0.1 * Math.sin(time * 2.0) + 0.35 * Math.sin(cpA * cpA * 70);
+        seedMat.uniforms.uI.value = seedI * pulse * (1 + 3.0 * cpA * cpA + 0.4 * sh);
+        seedMat.uniforms.uTime.value = time;
+        seed.quaternion.copy(camera.quaternion);
+      }
+
+      // the bang
+      if (banged) {
+        sMat.uniforms.uT.value = bt;
+        rings.forEach(r => {
+          const p = clamp01((bt - r.delay) / (r.dur / tS));
+          const on = p > 0 && p < 1;
+          r.mesh.visible = on;
+          if (on) { r.m.uniforms.uP.value = 1 - Math.pow(1 - p, 2.2); r.mesh.quaternion.copy(camera.quaternion); }
+        });
+        clouds.forEach(c => {
+          const p = clamp01((bt - c.delay) / (c.dur / tS));
+          const on = p > 0 && p < 1;
+          c.mesh.visible = on;
+          if (on) {
+            c.mesh.scale.setScalar(c.size * (0.1 + 0.9 * EASE.outCubic(p)));
+            c.m.uniforms.uA.value = c.a * Math.pow(1 - p, 1.4) * clamp01(p * 14);
+            c.mesh.quaternion.copy(camera.quaternion);
+          }
+        });
+        const trailOn = bt < 4.5;
+        trail.visible = trailOn;
+        orbs.forEach((o, i) => {
+          const lt = bt - o.delay;
+          const p = clamp01(lt / (o.dur / tS));
+          const e = EASE.outExpo(p);
+          o.e = e;
+          o.hov += ((fx.hover === i ? 1 : 0) - o.hov) * Math.min(1, dt * 7);
+          const T = o.target;
+          const curve = o.swirl * Math.sin(Math.PI * e) * 0.22;
+          const x = T.x * e - T.y * curve;
+          const y = T.y * e + T.x * curve + Math.sin(time * 0.8 + i * 1.9) * 0.05 * view.u * e;
+          o.mesh.position.set(x, y, 0);
+          const hot = 1 - e;
+          let I = (1 + 2.4 * hot * hot) * (1 + o.hov * 0.7) * clamp01(lt / 0.12);
+          let s = (0.25 + 0.75 * EASE.outCubic(p)) * 2.0 * view.u * (1 + o.hov * 0.3);
+          if (wIdx >= 0) {
+            if (i === wIdx) { s *= 1 + 5.5 * we * we; I *= lerp(1, 0.55, we); }
+            else { I *= (1 - we); }
+          }
+          o.mesh.visible = lt >= 0 && I > 0.003;
+          o.mesh.scale.setScalar(s);
+          o.mesh.quaternion.copy(camera.quaternion);
+          const cw = Math.sqrt(e);
+          o.m.uniforms.uColor.value.set(lerp(1, o.rgb[0], cw), lerp(1, o.rgb[1], cw), lerp(1, o.rgb[2], cw));
+          o.m.uniforms.uI.value = I;
+          o.m.uniforms.uTime.value = time;
+          if (trailOn) {
+            o.hx.copyWithin(3, 0, (TL - 1) * 3);
+            o.hx[0] = x; o.hx[1] = y; o.hx[2] = 0;
+            const vis = lt >= 0 ? Math.max(0, 1 - p * 1.5) : 0;
+            for (let j = 0; j < TL; j++) {
+              const k = i * TL + j;
+              tPos[k * 3] = o.hx[j * 3]; tPos[k * 3 + 1] = o.hx[j * 3 + 1]; tPos[k * 3 + 2] = o.hx[j * 3 + 2];
+              tVis[k] = vis;
+            }
+          }
+        });
+        if (trailOn) { tGeo.attributes.position.needsUpdate = true; tGeo.attributes.aVis.needsUpdate = true; }
+      }
+
+      // glow
+      let bs = 0.9 + 1.0 * cpA * cpA + 0.9 * we;
+      if (banged) bs += 1.5 * Math.exp(-bt * 1.5);
+      bloom.strength = bs;
+
+      // behind a fully open panel, halve the frame rate
+      const still = wIdx >= 0 && wP >= 1 && wDir === 0;
+      if (still && (frame & 1)) return;
+      composer.render(dt);
+    };
+
+    fx.raf = requestAnimationFrame(tick);
+    return fx;
+  }
+}
+</script>
+</body>
+</html>
